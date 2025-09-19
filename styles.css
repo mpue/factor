@@ -8,8 +8,8 @@
 
 body {
     font-family: 'Courier New', monospace;
-    background-color: #000;
-    color: #ffffff;
+    background-color: #0000AA;
+    color: #FFFFFF;
     overflow: hidden;
     height: 100vh;
 }
@@ -18,22 +18,26 @@ body {
     width: 100vw;
     height: 100vh;
     padding: 10px;
-    background-color: #000;
-    border: 2px solid #ffffff;
+    background-color: #0000AA;
+    border: 2px solid #FFFFFF;
     position: relative;
 }
 
 .header {
     text-align: center;
-    border-bottom: 1px solid #ffffff;
-    padding-bottom: 5px;
+    background-color: #FFFF00;
+    color: #000000;
+    border-bottom: 2px solid #FFFFFF;
+    padding: 5px;
     margin-bottom: 10px;
+    font-weight: bold;
 }
 
 .menu-bar {
-    background-color: #333333;
+    background-color: #00AAAA;
+    color: #000000;
     padding: 5px;
-    border: 1px solid #ffffff;
+    border: 2px solid #FFFFFF;
     margin-bottom: 10px;
 }
 
@@ -41,20 +45,23 @@ body {
     display: inline-block;
     margin-right: 20px;
     cursor: pointer;
+    padding: 2px 5px;
 }
 
 .menu-item.active,
 .menu-item:hover {
-    background-color: #ffffff;
-    color: #000;
+    background-color: #FFFF00;
+    color: #000000;
     padding: 2px 5px;
 }
 
 .main-content {
     height: calc(100vh - 120px);
     overflow-y: auto;
-    border: 1px solid #ffffff;
+    border: 2px solid #FFFFFF;
     padding: 10px;
+    background-color: #0000AA;
+    color: #FFFFFF;
 }
 
 .status-bar {
@@ -62,9 +69,10 @@ body {
     bottom: 10px;
     left: 10px;
     right: 10px;
-    background-color: #333333;
+    background-color: #00AAAA;
+    color: #000000;
     padding: 5px;
-    border: 1px solid #ffffff;
+    border: 2px solid #FFFFFF;
 }
 
 .form-row {
@@ -77,23 +85,24 @@ body {
 }
 
 .form-input {
-    background-color: #000;
-    color: #ffffff;
-    border: 1px solid #ffffff;
+    background-color: #FFFFFF;
+    color: #000000;
+    border: 2px inset #CCCCCC;
     padding: 2px;
     font-family: inherit;
     width: 200px;
 }
 
 .form-input:focus {
-    background-color: #333333;
+    background-color: #FFFF00;
+    color: #000000;
     outline: none;
 }
 
 .button {
-    background-color: #000;
-    color: #ffffff;
-    border: 1px solid #ffffff;
+    background-color: #CCCCCC;
+    color: #000000;
+    border: 2px outset #CCCCCC;
     padding: 5px 10px;
     font-family: inherit;
     cursor: pointer;
@@ -102,28 +111,34 @@ body {
 
 .button:hover,
 .button.active {
-    background-color: #ffffff;
-    color: #000;
+    background-color: #FFFF00;
+    color: #000000;
+    border: 2px inset #CCCCCC;
 }
 
 .table {
     width: 100%;
     border-collapse: collapse;
+    background-color: #FFFFFF;
+    color: #000000;
 }
 
 .table th,
 .table td {
-    border: 1px solid #ffffff;
+    border: 1px solid #000000;
     padding: 5px;
     text-align: left;
 }
 
 .table th {
-    background-color: #333333;
+    background-color: #00AAAA;
+    color: #000000;
+    font-weight: bold;
 }
 
 .table tr:hover {
-    background-color: #333333;
+    background-color: #FFFF00;
+    color: #000000;
 }
 
 .hidden {
@@ -131,15 +146,16 @@ body {
 }
 
 .highlight {
-    background-color: #ffffff;
-    color: #000;
+    background-color: #FFFF00;
+    color: #000000;
 }
 
 .invoice-preview {
-    border: 2px solid #ffffff;
+    border: 2px solid #FFFFFF;
     padding: 20px;
     margin: 10px 0;
-    background-color: #111111;
+    background-color: #FFFFFF;
+    color: #000000;
 }
 
 @media print {

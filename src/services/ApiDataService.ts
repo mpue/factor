@@ -11,7 +11,7 @@ interface ApiResponse<T> {
 export class ApiDataService {
   private baseUrl: string;
 
-  constructor(baseUrl: string = 'http://localhost:3002/api') {
+  constructor(baseUrl: string = 'http://localhost:3003/api') {
     this.baseUrl = baseUrl;
   }
 

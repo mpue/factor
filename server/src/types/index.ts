@@ -22,16 +22,34 @@ export interface Customer {
   updatedAt?: string;
 }
 
+export interface InvoiceTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  templateContent: string;
+  templateType: 'invoice' | 'quote' | 'reminder';
+  isDefault: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Invoice {
   id: string;
   customerId: string;
+  templateId?: string;
   invoiceNumber: string;
   date: string;
   dueDate?: string;
   totalAmount: number;
-  status: 'draft' | 'sent' | 'paid' | 'overdue';
+  taxAmount: number;
+  discountAmount: number;
+  netAmount: number;
+  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
   notes?: string;
+  paymentTerms: string;
   positions?: InvoicePosition[];
+  customer?: Customer;
+  template?: InvoiceTemplate;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -85,6 +103,35 @@ export interface CustomerRow {
   city: string;
   phone: string;
   email: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InvoiceTemplateRow {
+  id: string;
+  name: string;
+  description: string;
+  template_content: string;
+  template_type: string;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InvoiceRow {
+  id: string;
+  customer_id: string;
+  template_id: string | null;
+  invoice_number: string;
+  date: string;
+  due_date: string | null;
+  total_amount: number;
+  tax_amount: number;
+  discount_amount: number;
+  net_amount: number;
+  status: string;
+  notes: string;
+  payment_terms: string;
   created_at: string;
   updated_at: string;
 }

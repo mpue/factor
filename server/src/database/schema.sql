@@ -26,19 +26,37 @@ CREATE TABLE IF NOT EXISTS customers (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Invoice templates table
+CREATE TABLE IF NOT EXISTS invoice_templates (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    description TEXT DEFAULT '',
+    template_content TEXT NOT NULL, -- Markdown content with mustache variables
+    template_type TEXT DEFAULT 'invoice', -- invoice, quote, reminder, etc.
+    is_default BOOLEAN DEFAULT FALSE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Invoices table
 CREATE TABLE IF NOT EXISTS invoices (
     id TEXT PRIMARY KEY,
     customer_id TEXT NOT NULL,
+    template_id TEXT,
     invoice_number TEXT UNIQUE NOT NULL,
     date DATE NOT NULL,
     due_date DATE,
     total_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    status TEXT NOT NULL DEFAULT 'draft',
+    tax_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    discount_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    net_amount DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    status TEXT NOT NULL DEFAULT 'draft', -- draft, sent, paid, overdue, cancelled
     notes TEXT DEFAULT '',
+    payment_terms TEXT DEFAULT '30 Tage netto',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT,
+    FOREIGN KEY (template_id) REFERENCES invoice_templates(id) ON DELETE SET NULL
 );
 
 -- Invoice positions/line items
@@ -70,8 +88,13 @@ CREATE TABLE IF NOT EXISTS stock_movements (
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_articles_name ON articles(name);
 CREATE INDEX IF NOT EXISTS idx_customers_company ON customers(company);
+CREATE INDEX IF NOT EXISTS idx_invoice_templates_name ON invoice_templates(name);
+CREATE INDEX IF NOT EXISTS idx_invoice_templates_type ON invoice_templates(template_type);
 CREATE INDEX IF NOT EXISTS idx_invoices_customer ON invoices(customer_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_template ON invoices(template_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_date ON invoices(date);
+CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status);
+CREATE INDEX IF NOT EXISTS idx_invoices_number ON invoices(invoice_number);
 CREATE INDEX IF NOT EXISTS idx_invoice_positions_invoice ON invoice_positions(invoice_id);
 CREATE INDEX IF NOT EXISTS idx_invoice_positions_article ON invoice_positions(article_id);
 CREATE INDEX IF NOT EXISTS idx_stock_movements_article ON stock_movements(article_id);
@@ -88,6 +111,12 @@ CREATE TRIGGER IF NOT EXISTS customers_updated_at
     AFTER UPDATE ON customers
 BEGIN
     UPDATE customers SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS invoice_templates_updated_at 
+    AFTER UPDATE ON invoice_templates
+BEGIN
+    UPDATE invoice_templates SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
 END;
 
 CREATE TRIGGER IF NOT EXISTS invoices_updated_at 
@@ -108,3 +137,129 @@ INSERT OR IGNORE INTO customers (id, company, contact, street, city, phone, emai
 ('K001', 'Musterfirma GmbH', 'Max Mustermann', 'Musterstraße 1', '12345 Musterstadt', '0123-456789', 'max@musterfirma.de'),
 ('K002', 'Beispiel AG', 'Erika Beispiel', 'Beispielweg 15', '54321 Beispielstadt', '0987-654321', 'erika@beispiel.ag'),
 ('K003', 'Demo Handels GmbH', 'Peter Demo', 'Demostraße 42', '99999 Demostadt', '0555-123456', 'peter@demo-handel.de');
+
+-- Insert default invoice templates
+INSERT OR IGNORE INTO invoice_templates (id, name, description, template_content, template_type, is_default) VALUES
+('TPL_INVOICE_01', 'Standard Rechnung', 'Standard-Rechnungsvorlage mit allen wichtigen Elementen', 
+'# RECHNUNG
+
+**Rechnungsnummer:** {{invoiceNumber}}  
+**Datum:** {{invoiceDate}}  
+**Fälligkeitsdatum:** {{dueDate}}
+
+---
+
+## Rechnungsempfänger
+{{customer.company}}  
+{{customer.contact}}  
+{{customer.street}}  
+{{customer.city}}
+
+---
+
+## Rechnungspositionen
+
+{{#positions}}
+| Pos. | Artikel | Menge | Preis | Gesamt |
+|------|---------|-------|-------|--------|
+{{#items}}
+| {{position}} | {{name}} | {{quantity}} | {{unitPrice}}€ | {{totalPrice}}€ |
+{{/items}}
+{{/positions}}
+
+---
+
+## Zusammenfassung
+
+**Nettobetrag:** {{netAmount}}€  
+**MwSt. (19%):** {{taxAmount}}€  
+**Gesamtbetrag:** {{totalAmount}}€
+
+---
+
+**Zahlungsbedingungen:** {{paymentTerms}}
+
+{{#notes}}
+**Anmerkungen:** {{notes}}
+{{/notes}}
+
+Vielen Dank für Ihren Auftrag!', 'invoice', TRUE),
+
+('TPL_QUOTE_01', 'Standard Angebot', 'Vorlage für Kostenvoranschläge und Angebote',
+'# ANGEBOT
+
+**Angebotsnummer:** {{invoiceNumber}}  
+**Datum:** {{invoiceDate}}  
+**Gültig bis:** {{dueDate}}
+
+---
+
+## Kunde
+{{customer.company}}  
+{{customer.contact}}  
+{{customer.street}}  
+{{customer.city}}
+
+---
+
+## Angebotspositionen
+
+{{#positions}}
+| Pos. | Artikel | Menge | Preis | Gesamt |
+|------|---------|-------|-------|--------|
+{{#items}}
+| {{position}} | {{name}} | {{quantity}} | {{unitPrice}}€ | {{totalPrice}}€ |
+{{/items}}
+{{/positions}}
+
+---
+
+## Gesamtsumme
+
+**Nettobetrag:** {{netAmount}}€  
+**MwSt. (19%):** {{taxAmount}}€  
+**Angebotssumme:** {{totalAmount}}€
+
+---
+
+Dieses Angebot ist {{paymentTerms}} gültig.
+
+{{#notes}}
+**Hinweise:** {{notes}}
+{{/notes}}
+
+Wir freuen uns auf Ihren Auftrag!', 'quote', FALSE),
+
+('TPL_REMINDER_01', 'Zahlungserinnerung', 'Vorlage für Mahnungen und Zahlungserinnerungen',
+'# ZAHLUNGSERINNERUNG
+
+**Rechnungsnummer:** {{invoiceNumber}}  
+**Rechnungsdatum:** {{invoiceDate}}  
+**Fälligkeitsdatum:** {{dueDate}}  
+**Heute:** {{currentDate}}
+
+---
+
+## Kunde
+{{customer.company}}  
+{{customer.contact}}  
+{{customer.street}}  
+{{customer.city}}
+
+---
+
+Sehr geehrte Damen und Herren,
+
+zu unserer Rechnung Nr. {{invoiceNumber}} vom {{invoiceDate}} über **{{totalAmount}}€** konnten wir bisher keinen Zahlungseingang verzeichnen.
+
+Das Fälligkeitsdatum war der {{dueDate}}.
+
+Sollten Sie die Zahlung bereits veranlasst haben, betrachten Sie dieses Schreiben als gegenstandslos.
+
+Falls nicht, bitten wir Sie, den ausstehenden Betrag von **{{totalAmount}}€** innerhalb der nächsten 10 Tage zu begleichen.
+
+{{#notes}}
+**Anmerkungen:** {{notes}}
+{{/notes}}
+
+Mit freundlichen Grüßen', 'reminder', FALSE);

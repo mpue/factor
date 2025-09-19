@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { InvoiceManager } from '../InvoiceManager';
 
 interface InvoiceScreenProps {
   onStatusChange: (message: string) => void;
@@ -6,13 +7,12 @@ interface InvoiceScreenProps {
 
 const InvoiceScreen: React.FC<InvoiceScreenProps> = ({ onStatusChange }) => {
   useEffect(() => {
-    onStatusChange('Rechnungs-Bereich aktiv');
+    onStatusChange('Rechnungs-Bereich aktiv - F2: Neue Rechnung, F3: Vorlagen, F5: Aktualisieren');
   }, [onStatusChange]);
 
   return (
-    <div>
-      <h2>═══ RECHNUNGSWESEN ═══</h2>
-      <p>Rechnungsmodul wird in separaten React-Komponenten implementiert...</p>
+    <div className="screen-container">
+      <InvoiceManager />
     </div>
   );
 };

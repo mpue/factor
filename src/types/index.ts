@@ -19,23 +19,47 @@ export interface Customer {
   email: string;
 }
 
+export interface InvoiceTemplate {
+  id: string;
+  name: string;
+  templateType: 'invoice' | 'quote' | 'reminder';
+  description?: string;
+  templateContent: string;
+  isDefault: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface InvoicePosition {
-  pos: number;
+  id: string;
+  invoiceId: string;
   articleId: string;
-  articleName: string;
   quantity: number;
-  price: number;
-  total: number;
+  unitPrice: number;
+  totalPrice: number;
+  createdAt?: string;
+  articleName?: string;
 }
 
 export interface Invoice {
-  number: string;
+  id: string;
   customerId: string;
-  customerName: string;
+  templateId?: string;
+  invoiceNumber: string;
   date: string;
-  positions: InvoicePosition[];
-  total: number;
-  status: string;
+  dueDate?: string;
+  totalAmount: number;
+  taxAmount: number;
+  discountAmount: number;
+  netAmount: number;
+  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
+  notes?: string;
+  paymentTerms: string;
+  positions?: InvoicePosition[];
+  customer?: Customer;
+  template?: InvoiceTemplate;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface StockMovement {
