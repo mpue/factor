@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOS Warenwirtschaftssystem v1.0</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Courier+New:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #000;
+            color: #ffffff;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        .dos-screen {
+            width: 100vw;
+            height: 100vh;
+            padding: 10px;
+            background-color: #000;
+            border: 2px solid #ffffff;
+            position: relative;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 1px solid #ffffff;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .menu-bar {
+            background-color: #333333;
+            padding: 5px;
+            border: 1px solid #ffffff;
+            margin-bottom: 10px;
+        }
+        
+        .menu-item {
+            display: inline-block;
+            margin-right: 20px;
+            cursor: pointer;
+        }
+        
+        .menu-item.active,
+        .menu-item:hover {
+            background-color: #ffffff;
+            color: #000;
+            padding: 2px 5px;
+        }
+        
+        .main-content {
+            height: calc(100vh - 120px);
+            overflow-y: auto;
+            border: 1px solid #ffffff;
+            padding: 10px;
+        }
+        
+        .status-bar {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            background-color: #333333;
+            padding: 5px;
+            border: 1px solid #ffffff;
+        }
+        
+        .form-row {
+            margin-bottom: 5px;
+        }
+        
+        .form-label {
+            display: inline-block;
+            width: 150px;
+        }
+        
+        .form-input {
+            background-color: #000;
+            color: #ffffff;
+            border: 1px solid #ffffff;
+            padding: 2px;
+            font-family: inherit;
+            width: 200px;
+        }
+        
+        .form-input:focus {
+            background-color: #333333;
+            outline: none;
+        }
+        
+        .button {
+            background-color: #000;
+            color: #ffffff;
+            border: 1px solid #ffffff;
+            padding: 5px 10px;
+            font-family: inherit;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        
+        .button:hover,
+        .button.active {
+            background-color: #ffffff;
+            color: #000;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th,
+        .table td {
+            border: 1px solid #ffffff;
+            padding: 5px;
+            text-align: left;
+        }
+        
+        .table th {
+            background-color: #333333;
+        }
+        
+        .table tr:hover {
+            background-color: #333333;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .highlight {
+            background-color: #ffffff;
+            color: #000;
+        }
+        
+        .invoice-preview {
+            border: 2px solid #ffffff;
+            padding: 20px;
+            margin: 10px 0;
+            background-color: #111111;
+        }
+        
+        @media print {
+            body {
+                background-color: white;
+                color: black;
+            }
+            .dos-screen {
+                border: none;
+                height: auto;
+            }
+            .menu-bar, .status-bar {
+                display: none;
+            }
+            .invoice-preview {
+                background-color: white;
+                border: 1px solid black;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dos-screen">
+        <div class="header">
+            <h1>═══ WARENWIRTSCHAFTSSYSTEM v1.0 ═══</h1>
+            <p>DOS-Style Business Management System</p>
+        </div>
+        
+        <div class="menu-bar">
+            <span class="menu-item" data-key="F1" onclick="showScreen('artikel')">F1-Artikel</span>
+            <span class="menu-item" data-key="F2" onclick="showScreen('kunden')">F2-Kunden</span>
+            <span class="menu-item" data-key="F3" onclick="showScreen('rechnungen')">F3-Rechnungen</span>
+            <span class="menu-item" data-key="F4" onclick="showScreen('lager')">F4-Lager</span>
+            <span class="menu-item" data-key="F5" onclick="showScreen('berichte')">F5-Berichte</span>
+            <span class="menu-item" data-key="ESC" onclick="showScreen('main')">ESC-Hauptmenü</span>
+        </div>
+        
+        <div class="main-content">
+            <!-- Hauptmenü -->
+            <div id="main-screen">
+                <pre>
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                          HAUPTMENÜ - WARENWIRTSCHAFT                        ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║                                                                              ║
+║  F1 - Artikelverwaltung     │  F5 - Berichte und Auswertungen              ║
+║       • Artikel anlegen     │       • Umsatzberichte                        ║
+║       • Artikel bearbeiten  │       • Lagerberichte                         ║
+║       • Preise verwalten    │       • Kundenlisten                          ║
+║                             │                                                ║
+║  F2 - Kundenverwaltung      │  F6 - Systemeinstellungen                    ║
+║       • Kunden anlegen      │       • Firmeneinstellungen                   ║
+║       • Kunden bearbeiten   │       • Druckereinstellungen                 ║
+║       • Kundenliste         │       • Backup/Restore                        ║
+║                             │                                                ║
+║  F3 - Rechnungswesen        │  F7 - Hilfe und Info                         ║
+║       • Rechnung erstellen  │       • Bedienungsanleitung                   ║
+║       • Rechnungen verwalten│       • Über das System                       ║
+║       • Zahlungen buchen    │       • Tastaturkürzel                        ║
+║                             │                                                ║
+║  F4 - Lagerverwaltung       │  ESC - Programm beenden                      ║
+║       • Wareneingang        │                                                ║
+║       • Warenausgang        │                                                ║
+║       • Inventur            │                                                ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+                    Wählen Sie eine Option mit den Funktionstasten
+                    oder nutzen Sie die Maus für die Navigation
+                </pre>
+            </div>
+            
+            <!-- Artikelverwaltung -->
+            <div id="artikel-screen" class="hidden">
+                <h2>═══ ARTIKELVERWALTUNG ═══</h2>
+                <div style="margin: 20px 0;">
+                    <button class="button" onclick="showArticleForm()">F6-Neu anlegen</button>
+                    <button class="button" onclick="editSelectedArticle()">F7-Bearbeiten</button>
+                    <button class="button" onclick="deleteSelectedArticle()">F8-Löschen</button>
+                </div>
+                
+                <div id="article-form" class="hidden" style="margin-bottom: 20px; border: 1px solid #00ff00; padding: 10px;">
+                    <h3>Artikel bearbeiten:</h3>
+                    <div class="form-row">
+                        <span class="form-label">Artikel-Nr:</span>
+                        <input type="text" class="form-input" id="article-id" placeholder="z.B. ART001">
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">Bezeichnung:</span>
+                        <input type="text" class="form-input" id="article-name" placeholder="Artikelbezeichnung">
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">Verkaufspreis €:</span>
+                        <input type="number" class="form-input" id="article-price" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">Einkaufspreis €:</span>
+                        <input type="number" class="form-input" id="article-cost" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">Lagerbestand:</span>
+                        <input type="number" class="form-input" id="article-stock" placeholder="0">
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">Mindestbestand:</span>
+                        <input type="number" class="form-input" id="article-min-stock" placeholder="0">
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <button class="button" onclick="saveArticle()">F9-Speichern</button>
+                        <button class="button" onclick="cancelArticleForm()">ESC-Abbrechen</button>
+                    </div>
+                </div>
+                
+                <table class="table" id="articles-table">
+                    <thead>
+                        <tr>
+                            <th>Art.-Nr.</th>
+                            <th>Bezeichnung</th>
+                            <th>VK-Preis</th>
+                            <th>EK-Preis</th>
+                            <th>Bestand</th>
+                            <th>Min-Best.</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="articles-tbody">
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Kundenverwaltung -->
+            <div id="kunden-screen" class="hidden">
+                <h2>═══ KUNDENVERWALTUNG ═══</h2>
+                <div style="margin: 20px 0;">
+                    <button class="button" onclick="showCustomerForm()">F6-Neu anlegen</button>
+                    <button class="button" onclick="editSelectedCustomer()">F7-Bearbeiten</button>
+                    <button class="button" onclick="deleteSelectedCustomer()">F8-Löschen</button>
+                </div>
+                
+                <div id="customer-form" class="hidden" style="margin-bottom: 20px; border: 1px solid #00ff00; padding: 10px;">
+                    <h3>Kunde bearbeiten:</h3>
+                    <div class="form-row">
+                        <span class="form-label">Kunden-Nr:</span>
+                        <input type="text" class="form-input" id="customer-id" placeholder="z.B. K001">
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">Firmenname:</span>
+                        <input type="text" class="form-input" id="customer-company" placeholder="Firmenname">
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">Ansprechpartner:</span>
+                        <input type="text" class="form-input" id="customer-contact" placeholder="Name des Ansprechpartners">
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">Straße:</span>
+                        <input type="text" class="form-input" id="customer-street" placeholder="Straße und Hausnummer">
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">PLZ/Ort:</span>
+                        <input type="text" class="form-input" id="customer-city" placeholder="PLZ Ort">
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">Telefon:</span>
+                        <input type="text" class="form-input" id="customer-phone" placeholder="Telefonnummer">
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">E-Mail:</span>
+                        <input type="email" class="form-input" id="customer-email" placeholder="email@beispiel.de">
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <button class="button" onclick="saveCustomer()">F9-Speichern</button>
+                        <button class="button" onclick="cancelCustomerForm()">ESC-Abbrechen</button>
+                    </div>
+                </div>
+                
+                <table class="table" id="customers-table">
+                    <thead>
+                        <tr>
+                            <th>Kd.-Nr.</th>
+                            <th>Firmenname</th>
+                            <th>Ansprechpartner</th>
+                            <th>Ort</th>
+                            <th>Telefon</th>
+                            <th>E-Mail</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customers-tbody">
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Rechnungswesen -->
+            <div id="rechnungen-screen" class="hidden">
+                <h2>═══ RECHNUNGSWESEN ═══</h2>
+                <div style="margin: 20px 0;">
+                    <button class="button" onclick="showInvoiceForm()">F6-Neue Rechnung</button>
+                    <button class="button" onclick="printSelectedInvoice()">F7-Drucken</button>
+                    <button class="button" onclick="deleteSelectedInvoice()">F8-Löschen</button>
+                </div>
+                
+                <div id="invoice-form" class="hidden" style="margin-bottom: 20px; border: 1px solid #00ff00; padding: 10px;">
+                    <h3>Rechnung erstellen:</h3>
+                    <div class="form-row">
+                        <span class="form-label">Rechnungs-Nr:</span>
+                        <input type="text" class="form-input" id="invoice-number" readonly>
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">Kunde:</span>
+                        <select class="form-input" id="invoice-customer" style="width: 250px;">
+                            <option value="">Kunde auswählen...</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">Datum:</span>
+                        <input type="date" class="form-input" id="invoice-date">
+                    </div>
+                    
+                    <h4 style="margin: 15px 0 10px 0;">Positionen:</h4>
+                    <div style="margin-bottom: 10px;">
+                        <span class="form-label">Artikel:</span>
+                        <select class="form-input" id="position-article" style="width: 200px;">
+                            <option value="">Artikel auswählen...</option>
+                        </select>
+                        <span style="margin-left: 20px;">Menge:</span>
+                        <input type="number" class="form-input" id="position-quantity" style="width: 80px;" placeholder="1">
+                        <button class="button" onclick="addInvoicePosition()" style="margin-left: 10px;">Hinzufügen</button>
+                    </div>
+                    
+                    <table class="table" id="invoice-positions-table" style="margin-bottom: 15px;">
+                        <thead>
+                            <tr>
+                                <th>Pos.</th>
+                                <th>Artikel</th>
+                                <th>Bezeichnung</th>
+                                <th>Menge</th>
+                                <th>Einzelpreis</th>
+                                <th>Gesamtpreis</th>
+                                <th>Aktion</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoice-positions-tbody">
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5" style="text-align: right; font-weight: bold;">Gesamtsumme:</td>
+                                <td id="invoice-total" style="font-weight: bold;">0,00 €</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    
+                    <div style="margin-top: 10px;">
+                        <button class="button" onclick="saveInvoice()">F9-Rechnung speichern</button>
+                        <button class="button" onclick="previewInvoice()">F10-Vorschau</button>
+                        <button class="button" onclick="cancelInvoiceForm()">ESC-Abbrechen</button>
+                    </div>
+                </div>
+                
+                <div id="invoice-preview" class="hidden invoice-preview">
+                    <h3>RECHNUNG</h3>
+                    <div id="invoice-preview-content"></div>
+                    <div style="margin-top: 20px;">
+                        <button class="button" onclick="printInvoice()">F11-Drucken</button>
+                        <button class="button" onclick="hideInvoicePreview()">ESC-Schließen</button>
+                    </div>
+                </div>
+                
+                <table class="table" id="invoices-table">
+                    <thead>
+                        <tr>
+                            <th>Rech.-Nr.</th>
+                            <th>Datum</th>
+                            <th>Kunde</th>
+                            <th>Betrag</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoices-tbody">
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Lagerverwaltung -->
+            <div id="lager-screen" class="hidden">
+                <h2>═══ LAGERVERWALTUNG ═══</h2>
+                <div style="margin: 20px 0;">
+                    <button class="button" onclick="showStockForm('in')">F6-Wareneingang</button>
+                    <button class="button" onclick="showStockForm('out')">F7-Warenausgang</button>
+                    <button class="button" onclick="showInventory()">F8-Inventur</button>
+                </div>
+                
+                <div id="stock-form" class="hidden" style="margin-bottom: 20px; border: 1px solid #00ff00; padding: 10px;">
+                    <h3 id="stock-form-title">Lagerbewegung:</h3>
+                    <div class="form-row">
+                        <span class="form-label">Artikel:</span>
+                        <select class="form-input" id="stock-article" style="width: 250px;">
+                            <option value="">Artikel auswählen...</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">Menge:</span>
+                        <input type="number" class="form-input" id="stock-quantity" placeholder="0">
+                    </div>
+                    <div class="form-row">
+                        <span class="form-label">Bemerkung:</span>
+                        <input type="text" class="form-input" id="stock-note" placeholder="Optional">
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <button class="button" onclick="saveStockMovement()">F9-Buchen</button>
+                        <button class="button" onclick="cancelStockForm()">ESC-Abbrechen</button>
+                    </div>
+                </div>
+                
+                <h3>Aktuelle Lagerbestände:</h3>
+                <table class="table" id="stock-table">
+                    <thead>
+                        <tr>
+                            <th>Art.-Nr.</th>
+                            <th>Bezeichnung</th>
+                            <th>Aktueller Bestand</th>
+                            <th>Mindestbestand</th>
+                            <th>Status</th>
+                            <th>Letzte Bewegung</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stock-tbody">
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Berichte -->
+            <div id="berichte-screen" class="hidden">
+                <h2>═══ BERICHTE UND AUSWERTUNGEN ═══</h2>
+                <div style="margin: 20px 0;">
+                    <button class="button" onclick="generateSalesReport()">F6-Umsatzbericht</button>
+                    <button class="button" onclick="generateStockReport()">F7-Lagerbericht</button>
+                    <button class="button" onclick="generateCustomerReport()">F8-Kundenliste</button>
+                </div>
+                
+                <div id="reports-content">
+                    <p>Wählen Sie einen Bericht aus den obigen Optionen.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="status-bar">
+            <span id="status-text">Bereit - Verwenden Sie die Funktionstasten oder Maus für Navigation</span>
+            <span style="float: right;" id="current-time"></span>
+        </div>
+    </div>
+
+    <script>
+        // Globale Variablen
+        let articles = JSON.parse(localStorage.getItem('articles') || '[]');
+        let customers = JSON.parse(localStorage.getItem('customers') || '[]');
+        let invoices = JSON.parse(localStorage.getItem('invoices') || '[]');
+        let stockMovements = JSON.parse(localStorage.getItem('stockMovements') || '[]');
+        let currentEditingId = null;
+        let currentScreen = 'main';
+        let selectedRow = null;
+        let invoicePositions = [];
+        let currentStockMode = 'in';
+
+        // Initialisierung
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeData();
+            showScreen('main');
+            updateTime();
+            setInterval(updateTime, 1000);
+            
+            // Event Listeners für Tastatureingaben
+            document.addEventListener('keydown', handleKeyPress);
+            
+            // Tabellen-Navigation
+            setupTableNavigation();
+        });
+
+        function initializeData() {
+            // Beispieldaten erstellen falls keine vorhanden
+            if (articles.length === 0) {
+                articles = [
+                    {id: 'ART001', name: 'Bürostuhl Standard', price: 89.99, cost: 45.00, stock: 15, minStock: 5},
+                    {id: 'ART002', name: 'Schreibtisch 120x80', price: 199.99, cost: 120.00, stock: 8, minStock: 2},
+                    {id: 'ART003', name: 'Monitor 24 Zoll', price: 249.99, cost: 180.00, stock: 12, minStock: 3}
+                ];
+                saveArticles();
+            }
+            
+            if (customers.length === 0) {
+                customers = [
+                    {id: 'K001', company: 'Musterfirma GmbH', contact: 'Max Mustermann', street: 'Musterstraße 1', city: '12345 Musterstadt', phone: '0123-456789', email: 'max@musterfirma.de'},
+                    {id: 'K002', company: 'Beispiel AG', contact: 'Erika Beispiel', street: 'Beispielweg 15', city: '54321 Beispielstadt', phone: '0987-654321', email: 'erika@beispiel.ag'}
+                ];
+                saveCustomers();
+            }
+            
+            refreshAllTables();
+        }
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').textContent = now.toLocaleString('de-DE');
+        }
+
+        function handleKeyPress(event) {
+            const key = event.code;
+            
+            switch(key) {
+                case 'F1':
+                    event.preventDefault();
+                    showScreen('artikel');
+                    break;
+                case 'F2':
+                    event.preventDefault();
+                    showScreen('kunden');
+                    break;
+                case 'F3':
+                    event.preventDefault();
+                    showScreen('rechnungen');
+                    break;
+                case 'F4':
+                    event.preventDefault();
+                    showScreen('lager');
+                    break;
+                case 'F5':
+                    event.preventDefault();
+                    showScreen('berichte');
+                    break;
+                case 'Escape':
+                    event.preventDefault();
+                    if (currentScreen !== 'main') {
+                        showScreen('main');
+                    }
+                    break;
+                case 'F6':
+                    event.preventDefault();
+                    handleF6();
+                    break;
+                case 'F7':
+                    event.preventDefault();
+                    handleF7();
+                    break;
+                case 'F8':
+                    event.preventDefault();
+                    handleF8();
+                    break;
+                case 'F9':
+                    event.preventDefault();
+                    handleF9();
+                    break;
+                case 'F10':
+                    event.preventDefault();
+                    handleF10();
+                    break;
+                case 'F11':
+                    event.preventDefault();
+                    handleF11();
+                    break;
+            }
+        }
+
+        function handleF6() {
+            switch(currentScreen) {
+                case 'artikel':
+                    showArticleForm();
+                    break;
+                case 'kunden':
+                    showCustomerForm();
+                    break;
+                case 'rechnungen':
+                    showInvoiceForm();
+                    break;
+                case 'lager':
+                    showStockForm('in');
+                    break;
+                case 'berichte':
+                    generateSalesReport();
+                    break;
+            }
+        }
+
+        function handleF7() {
+            switch(currentScreen) {
+                case 'artikel':
+                    editSelectedArticle();
+                    break;
+                case 'kunden':
+                    editSelectedCustomer();
+                    break;
+                case 'rechnungen':
+                    printSelectedInvoice();
+                    break;
+                case 'lager':
+                    showStockForm('out');
+                    break;
+                case 'berichte':
+                    generateStockReport();
+                    break;
+            }
+        }
+
+        function handleF8() {
+            switch(currentScreen) {
+                case 'artikel':
+                    deleteSelectedArticle();
+                    break;
+                case 'kunden':
+                    deleteSelectedCustomer();
+                    break;
+                case 'rechnungen':
+                    deleteSelectedInvoice();
+                    break;
+                case 'lager':
+                    showInventory();
+                    break;
+                case 'berichte':
+                    generateCustomerReport();
+                    break;
+            }
+        }
+
+        function handleF9() {
+            // Speichern-Funktionen je nach Kontext
+            if (!document.getElementById('article-form').classList.contains('hidden')) {
+                saveArticle();
+            } else if (!document.getElementById('customer-form').classList.contains('hidden')) {
+                saveCustomer();
+            } else if (!document.getElementById('invoice-form').classList.contains('hidden')) {
+                saveInvoice();
+            } else if (!document.getElementById('stock-form').classList.contains('hidden')) {
+                saveStockMovement();
+            }
+        }
+
+        function handleF10() {
+            if (currentScreen === 'rechnungen' && !document.getElementById('invoice-form').classList.contains('hidden')) {
+                previewInvoice();
+            }
+        }
+
+        function handleF11() {
+            if (!document.getElementById('invoice-preview').classList.contains('hidden')) {
+                printInvoice();
+            }
+        }
+
+        function showScreen(screenName) {
+            // Alle Screens verstecken
+            const screens = ['main', 'artikel', 'kunden', 'rechnungen', 'lager', 'berichte'];
+            screens.forEach(screen => {
+                document.getElementById(screen + '-screen').classList.add('hidden');
+            });
+            
+            // Aktiven Screen anzeigen
+            document.getElementById(screenName + '-screen').classList.remove('hidden');
+            currentScreen = screenName;
+            
+            // Menu-Item hervorheben
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Status aktualisieren
+            updateStatus(`${screenName.charAt(0).toUpperCase() + screenName.slice(1)}-Bereich aktiv`);
+        }
+
+        function updateStatus(message) {
+            document.getElementById('status-text').textContent = message;
+        }
+
+        // Artikelverwaltung
+        function showArticleForm() {
+            document.getElementById('article-form').classList.remove('hidden');
+            currentEditingId = null;
+            clearArticleForm();
+            document.getElementById('article-id').focus();
+        }
+
+        function clearArticleForm() {
+            document.getElementById('article-id').value = '';
+            document.getElementById('article-name').value = '';
+            document.getElementById('article-price').value = '';
+            document.getElementById('article-cost').value = '';
+            document.getElementById('article-stock').value = '';
+            document.getElementById('article-min-stock').value = '';
+        }
+
+        function cancelArticleForm() {
+            document.getElementById('article-form').classList.add('hidden');
+            currentEditingId = null;
+        }
+
+        function saveArticle() {
+            const id = document.getElementById('article-id').value;
+            const name = document.getElementById('article-name').value;
+            const price = parseFloat(document.getElementById('article-price').value);
+            const cost = parseFloat(document.getElementById('article-cost').value);
+            const stock = parseInt(document.getElementById('article-stock').value);
+            const minStock = parseInt(document.getElementById('article-min-stock').value);
+            
+            if (!id || !name || isNaN(price)) {
+                alert('Bitte füllen Sie alle Pflichtfelder aus!');
+                return;
+            }
+            
+            const article = {id, name, price, cost, stock, minStock};
+            
+            if (currentEditingId) {
+                const index = articles.findIndex(a => a.id === currentEditingId);
+                if (index !== -1) {
+                    articles[index] = article;
+                }
+            } else {
+                if (articles.find(a => a.id === id)) {
+                    alert('Artikel-Nr. bereits vorhanden!');
+                    return;
+                }
+                articles.push(article);
+            }
+            
+            saveArticles();
+            refreshArticlesTable();
+            cancelArticleForm();
+            updateStatus('Artikel gespeichert');
+        }
+
+        function editSelectedArticle() {
+            if (!selectedRow) {
+                alert('Bitte wählen Sie einen Artikel aus!');
+                return;
+            }
+            
+            const id = selectedRow.cells[0].textContent;
+            const article = articles.find(a => a.id === id);
+            
+            if (article) {
+                currentEditingId = id;
+                document.getElementById('article-id').value = article.id;
+                document.getElementById('article-name').value = article.name;
+                document.getElementById('article-price').value = article.price;
+                document.getElementById('article-cost').value = article.cost;
+                document.getElementById('article-stock').value = article.stock;
+                document.getElementById('article-min-stock').value = article.minStock;
+                document.getElementById('article-form').classList.remove('hidden');
+            }
+        }
+
+        function deleteSelectedArticle() {
+            if (!selectedRow) {
+                alert('Bitte wählen Sie einen Artikel aus!');
+                return;
+            }
+            
+            if (confirm('Artikel wirklich löschen?')) {
+                const id = selectedRow.cells[0].textContent;
+                articles = articles.filter(a => a.id !== id);
+                saveArticles();
+                refreshArticlesTable();
+                updateStatus('Artikel gelöscht');
+            }
+        }
+
+        function refreshArticlesTable() {
+            const tbody = document.getElementById('articles-tbody');
+            tbody.innerHTML = '';
+            
+            articles.forEach(article => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${article.id}</td>
+                    <td>${article.name}</td>
+                    <td>${article.price.toFixed(2)} €</td>
+                    <td>${article.cost.toFixed(2)} €</td>
+                    <td>${article.stock}</td>
+                    <td>${article.minStock}</td>
+                    <td>${article.stock <= article.minStock ? '<span class="highlight">NIEDRIG</span>' : 'OK'}</td>
+                `;
+                
+                row.addEventListener('click', function() {
+                    selectRow(row);
+                });
+            });
+        }
+
+        function saveArticles() {
+            localStorage.setItem('articles', JSON.stringify(articles));
+        }
+
+        // Kundenverwaltung
+        function showCustomerForm() {
+            document.getElementById('customer-form').classList.remove('hidden');
+            currentEditingId = null;
+            clearCustomerForm();
+            document.getElementById('customer-id').focus();
+        }
+
+        function clearCustomerForm() {
+            document.getElementById('customer-id').value = '';
+            document.getElementById('customer-company').value = '';
+            document.getElementById('customer-contact').value = '';
+            document.getElementById('customer-street').value = '';
+            document.getElementById('customer-city').value = '';
+            document.getElementById('customer-phone').value = '';
+            document.getElementById('customer-email').value = '';
+        }
+
+        function cancelCustomerForm() {
+            document.getElementById('customer-form').classList.add('hidden');
+            currentEditingId = null;
+        }
+
+        function saveCustomer() {
+            const id = document.getElementById('customer-id').value;
+            const company = document.getElementById('customer-company').value;
+            const contact = document.getElementById('customer-contact').value;
+            const street = document.getElementById('customer-street').value;
+            const city = document.getElementById('customer-city').value;
+            const phone = document.getElementById('customer-phone').value;
+            const email = document.getElementById('customer-email').value;
+            
+            if (!id || !company) {
+                alert('Bitte füllen Sie alle Pflichtfelder aus!');
+                return;
+            }
+            
+            const customer = {id, company, contact, street, city, phone, email};
+            
+            if (currentEditingId) {
+                const index = customers.findIndex(c => c.id === currentEditingId);
+                if (index !== -1) {
+                    customers[index] = customer;
+                }
+            } else {
+                if (customers.find(c => c.id === id)) {
+                    alert('Kunden-Nr. bereits vorhanden!');
+                    return;
+                }
+                customers.push(customer);
+            }
+            
+            saveCustomers();
+            refreshCustomersTable();
+            refreshCustomerSelect();
+            cancelCustomerForm();
+            updateStatus('Kunde gespeichert');
+        }
+
+        function editSelectedCustomer() {
+            if (!selectedRow) {
+                alert('Bitte wählen Sie einen Kunden aus!');
+                return;
+            }
+            
+            const id = selectedRow.cells[0].textContent;
+            const customer = customers.find(c => c.id === id);
+            
+            if (customer) {
+                currentEditingId = id;
+                document.getElementById('customer-id').value = customer.id;
+                document.getElementById('customer-company').value = customer.company;
+                document.getElementById('customer-contact').value = customer.contact;
+                document.getElementById('customer-street').value = customer.street;
+                document.getElementById('customer-city').value = customer.city;
+                document.getElementById('customer-phone').value = customer.phone;
+                document.getElementById('customer-email').value = customer.email;
+                document.getElementById('customer-form').classList.remove('hidden');
+            }
+        }
+
+        function deleteSelectedCustomer() {
+            if (!selectedRow) {
+                alert('Bitte wählen Sie einen Kunden aus!');
+                return;
+            }
+            
+            if (confirm('Kunde wirklich löschen?')) {
+                const id = selectedRow.cells[0].textContent;
+                customers = customers.filter(c => c.id !== id);
+                saveCustomers();
+                refreshCustomersTable();
+                refreshCustomerSelect();
+                updateStatus('Kunde gelöscht');
+            }
+        }
+
+        function refreshCustomersTable() {
+            const tbody = document.getElementById('customers-tbody');
+            tbody.innerHTML = '';
+            
+            customers.forEach(customer => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${customer.id}</td>
+                    <td>${customer.company}</td>
+                    <td>${customer.contact}</td>
+                    <td>${customer.city}</td>
+                    <td>${customer.phone}</td>
+                    <td>${customer.email}</td>
+                `;
+                
+                row.addEventListener('click', function() {
+                    selectRow(row);
+                });
+            });
+        }
+
+        function saveCustomers() {
+            localStorage.setItem('customers', JSON.stringify(customers));
+        }
+
+        // Rechnungswesen
+        function showInvoiceForm() {
+            document.getElementById('invoice-form').classList.remove('hidden');
+            currentEditingId = null;
+            clearInvoiceForm();
+            generateInvoiceNumber();
+            refreshCustomerSelect();
+            refreshArticleSelect();
+            document.getElementById('invoice-customer').focus();
+        }
+
+        function clearInvoiceForm() {
+            document.getElementById('invoice-customer').value = '';
+            document.getElementById('invoice-date').value = new Date().toISOString().substr(0, 10);
+            invoicePositions = [];
+            refreshInvoicePositionsTable();
+        }
+
+        function generateInvoiceNumber() {
+            const lastInvoice = invoices.length > 0 ? Math.max(...invoices.map(i => parseInt(i.number.replace('R', '')))) : 0;
+            document.getElementById('invoice-number').value = 'R' + String(lastInvoice + 1).padStart(5, '0');
+        }
+
+        function refreshCustomerSelect() {
+            const select = document.getElementById('invoice-customer');
+            select.innerHTML = '<option value="">Kunde auswählen...</option>';
+            
+            customers.forEach(customer => {
+                const option = document.createElement('option');
+                option.value = customer.id;
+                option.textContent = `${customer.id} - ${customer.company}`;
+                select.appendChild(option);
+            });
+        }
+
+        function refreshArticleSelect() {
+            const selects = [
+                document.getElementById('position-article'),
+                document.getElementById('stock-article')
+            ];
+            
+            selects.forEach(select => {
+                if (select) {
+                    select.innerHTML = '<option value="">Artikel auswählen...</option>';
+                    
+                    articles.forEach(article => {
+                        const option = document.createElement('option');
+                        option.value = article.id;
+                        option.textContent = `${article.id} - ${article.name}`;
+                        select.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        function addInvoicePosition() {
+            const articleId = document.getElementById('position-article').value;
+            const quantity = parseInt(document.getElementById('position-quantity').value) || 1;
+            
+            if (!articleId) {
+                alert('Bitte wählen Sie einen Artikel aus!');
+                return;
+            }
+            
+            const article = articles.find(a => a.id === articleId);
+            if (!article) {
+                alert('Artikel nicht gefunden!');
+                return;
+            }
+            
+            const position = {
+                pos: invoicePositions.length + 1,
+                articleId: article.id,
+                articleName: article.name,
+                quantity: quantity,
+                price: article.price,
+                total: quantity * article.price
+            };
+            
+            invoicePositions.push(position);
+            refreshInvoicePositionsTable();
+            
+            // Eingaben zurücksetzen
+            document.getElementById('position-article').value = '';
+            document.getElementById('position-quantity').value = '1';
+        }
+
+        function removeInvoicePosition(index) {
+            invoicePositions.splice(index, 1);
+            // Positionen neu nummerieren
+            invoicePositions.forEach((pos, i) => {
+                pos.pos = i + 1;
+            });
+            refreshInvoicePositionsTable();
+        }
+
+        function refreshInvoicePositionsTable() {
+            const tbody = document.getElementById('invoice-positions-tbody');
+            tbody.innerHTML = '';
+            
+            let total = 0;
+            
+            invoicePositions.forEach((position, index) => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${position.pos}</td>
+                    <td>${position.articleId}</td>
+                    <td>${position.articleName}</td>
+                    <td>${position.quantity}</td>
+                    <td>${position.price.toFixed(2)} €</td>
+                    <td>${position.total.toFixed(2)} €</td>
+                    <td><button class="button" onclick="removeInvoicePosition(${index})">X</button></td>
+                `;
+                total += position.total;
+            });
+            
+            document.getElementById('invoice-total').textContent = total.toFixed(2) + ' €';
+        }
+
+        function cancelInvoiceForm() {
+            document.getElementById('invoice-form').classList.add('hidden');
+            document.getElementById('invoice-preview').classList.add('hidden');
+            currentEditingId = null;
+        }
+
+        function saveInvoice() {
+            const number = document.getElementById('invoice-number').value;
+            const customerId = document.getElementById('invoice-customer').value;
+            const date = document.getElementById('invoice-date').value;
+            
+            if (!customerId || invoicePositions.length === 0) {
+                alert('Bitte wählen Sie einen Kunden aus und fügen Sie mindestens eine Position hinzu!');
+                return;
+            }
+            
+            const customer = customers.find(c => c.id === customerId);
+            const total = invoicePositions.reduce((sum, pos) => sum + pos.total, 0);
+            
+            const invoice = {
+                number,
+                customerId,
+                customerName: customer.company,
+                date,
+                positions: [...invoicePositions],
+                total,
+                status: 'Offen'
+            };
+            
+            invoices.push(invoice);
+            saveInvoices();
+            refreshInvoicesTable();
+            cancelInvoiceForm();
+            updateStatus('Rechnung gespeichert');
+        }
+
+        function previewInvoice() {
+            const customerId = document.getElementById('invoice-customer').value;
+            const date = document.getElementById('invoice-date').value;
+            const number = document.getElementById('invoice-number').value;
+            
+            if (!customerId || invoicePositions.length === 0) {
+                alert('Bitte wählen Sie einen Kunden aus und fügen Sie mindestens eine Position hinzu!');
+                return;
+            }
+            
+            const customer = customers.find(c => c.id === customerId);
+            const total = invoicePositions.reduce((sum, pos) => sum + pos.total, 0);
+            
+            let html = `
+                <div style="margin-bottom: 20px;">
+                    <h4>Rechnungsdetails:</h4>
+                    <p><strong>Rechnungsnummer:</strong> ${number}</p>
+                    <p><strong>Datum:</strong> ${new Date(date).toLocaleDateString('de-DE')}</p>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h4>Kunde:</h4>
+                    <p>${customer.company}<br>
+                    ${customer.contact}<br>
+                    ${customer.street}<br>
+                    ${customer.city}</p>
+                </div>
+                
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Pos.</th>
+                            <th>Artikelnummer</th>
+                            <th>Bezeichnung</th>
+                            <th>Menge</th>
+                            <th>Einzelpreis</th>
+                            <th>Gesamtpreis</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            invoicePositions.forEach(position => {
+                html += `
+                    <tr>
+                        <td>${position.pos}</td>
+                        <td>${position.articleId}</td>
+                        <td>${position.articleName}</td>
+                        <td>${position.quantity}</td>
+                        <td>${position.price.toFixed(2)} €</td>
+                        <td>${position.total.toFixed(2)} €</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="5" style="text-align: right; font-weight: bold;">Gesamtsumme:</td>
+                            <td style="font-weight: bold;">${total.toFixed(2)} €</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            `;
+            
+            document.getElementById('invoice-preview-content').innerHTML = html;
+            document.getElementById('invoice-preview').classList.remove('hidden');
+        }
+
+        function hideInvoicePreview() {
+            document.getElementById('invoice-preview').classList.add('hidden');
+        }
+
+        function printInvoice() {
+            window.print();
+        }
+
+        function printSelectedInvoice() {
+            if (!selectedRow) {
+                alert('Bitte wählen Sie eine Rechnung aus!');
+                return;
+            }
+            
+            // Hier würde normalerweise die ausgewählte Rechnung gedruckt
+            alert('Druckfunktion für ausgewählte Rechnung wird implementiert...');
+        }
+
+        function deleteSelectedInvoice() {
+            if (!selectedRow) {
+                alert('Bitte wählen Sie eine Rechnung aus!');
+                return;
+            }
+            
+            if (confirm('Rechnung wirklich löschen?')) {
+                const number = selectedRow.cells[0].textContent;
+                invoices = invoices.filter(i => i.number !== number);
+                saveInvoices();
+                refreshInvoicesTable();
+                updateStatus('Rechnung gelöscht');
+            }
+        }
+
+        function refreshInvoicesTable() {
+            const tbody = document.getElementById('invoices-tbody');
+            tbody.innerHTML = '';
+            
+            invoices.forEach(invoice => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${invoice.number}</td>
+                    <td>${new Date(invoice.date).toLocaleDateString('de-DE')}</td>
+                    <td>${invoice.customerName}</td>
+                    <td>${invoice.total.toFixed(2)} €</td>
+                    <td>${invoice.status}</td>
+                `;
+                
+                row.addEventListener('click', function() {
+                    selectRow(row);
+                });
+            });
+        }
+
+        function saveInvoices() {
+            localStorage.setItem('invoices', JSON.stringify(invoices));
+        }
+
+        // Lagerverwaltung
+        function showStockForm(mode) {
+            currentStockMode = mode;
+            document.getElementById('stock-form').classList.remove('hidden');
+            document.getElementById('stock-form-title').textContent = 
+                mode === 'in' ? 'Wareneingang:' : 'Warenausgang:';
+            refreshArticleSelect();
+            document.getElementById('stock-article').focus();
+        }
+
+        function cancelStockForm() {
+            document.getElementById('stock-form').classList.add('hidden');
+        }
+
+        function saveStockMovement() {
+            const articleId = document.getElementById('stock-article').value;
+            const quantity = parseInt(document.getElementById('stock-quantity').value);
+            const note = document.getElementById('stock-note').value;
+            
+            if (!articleId || !quantity) {
+                alert('Bitte wählen Sie einen Artikel aus und geben Sie eine Menge ein!');
+                return;
+            }
+            
+            const article = articles.find(a => a.id === articleId);
+            if (!article) {
+                alert('Artikel nicht gefunden!');
+                return;
+            }
+            
+            // Lagerbestand aktualisieren
+            if (currentStockMode === 'in') {
+                article.stock += quantity;
+            } else {
+                if (article.stock < quantity) {
+                    if (!confirm('Nicht genügend Artikel im Lager! Trotzdem buchen?')) {
+                        return;
+                    }
+                }
+                article.stock -= quantity;
+            }
+            
+            // Lagerbewegung protokollieren
+            const movement = {
+                articleId,
+                articleName: article.name,
+                type: currentStockMode,
+                quantity,
+                note,
+                date: new Date().toISOString(),
+                newStock: article.stock
+            };
+            
+            stockMovements.push(movement);
+            
+            saveArticles();
+            localStorage.setItem('stockMovements', JSON.stringify(stockMovements));
+            refreshStockTable();
+            cancelStockForm();
+            updateStatus(`${currentStockMode === 'in' ? 'Wareneingang' : 'Warenausgang'} gebucht`);
+        }
+
+        function showInventory() {
+            refreshStockTable();
+            updateStatus('Inventur-Ansicht');
+        }
+
+        function refreshStockTable() {
+            const tbody = document.getElementById('stock-tbody');
+            tbody.innerHTML = '';
+            
+            articles.forEach(article => {
+                const lastMovement = stockMovements
+                    .filter(m => m.articleId === article.id)
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+                
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${article.id}</td>
+                    <td>${article.name}</td>
+                    <td>${article.stock}</td>
+                    <td>${article.minStock}</td>
+                    <td>${article.stock <= article.minStock ? '<span class="highlight">NIEDRIG</span>' : 'OK'}</td>
+                    <td>${lastMovement ? new Date(lastMovement.date).toLocaleDateString('de-DE') : 'Keine'}</td>
+                `;
+                
+                row.addEventListener('click', function() {
+                    selectRow(row);
+                });
+            });
+        }
+
+        // Berichte
+        function generateSalesReport() {
+            const content = document.getElementById('reports-content');
+            const totalSales = invoices.reduce((sum, inv) => sum + inv.total, 0);
+            const salesCount = invoices.length;
+            
+            content.innerHTML = `
+                <h3>UMSATZBERICHT</h3>
+                <div style="margin: 20px 0;">
+                    <p><strong>Anzahl Rechnungen:</strong> ${salesCount}</p>
+                    <p><strong>Gesamtumsatz:</strong> ${totalSales.toFixed(2)} €</p>
+                    <p><strong>Durchschnittlicher Rechnungsbetrag:</strong> ${salesCount > 0 ? (totalSales / salesCount).toFixed(2) : '0.00'} €</p>
+                </div>
+                
+                <h4>Rechnungen nach Status:</h4>
+                <table class="table">
+                    <thead>
+                        <tr><th>Status</th><th>Anzahl</th><th>Summe</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Offen</td>
+                            <td>${invoices.filter(i => i.status === 'Offen').length}</td>
+                            <td>${invoices.filter(i => i.status === 'Offen').reduce((sum, i) => sum + i.total, 0).toFixed(2)} €</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function generateStockReport() {
+            const content = document.getElementById('reports-content');
+            const lowStockItems = articles.filter(a => a.stock <= a.minStock);
+            const totalValue = articles.reduce((sum, a) => sum + (a.stock * a.cost), 0);
+            
+            content.innerHTML = `
+                <h3>LAGERBERICHT</h3>
+                <div style="margin: 20px 0;">
+                    <p><strong>Artikel gesamt:</strong> ${articles.length}</p>
+                    <p><strong>Lagerwert (EK):</strong> ${totalValue.toFixed(2)} €</p>
+                    <p><strong>Artikel mit niedrigem Bestand:</strong> ${lowStockItems.length}</p>
+                </div>
+                
+                <h4>Artikel mit niedrigem Bestand:</h4>
+                <table class="table">
+                    <thead>
+                        <tr><th>Art.-Nr.</th><th>Bezeichnung</th><th>Bestand</th><th>Min-Bestand</th></tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            lowStockItems.forEach(article => {
+                content.innerHTML += `
+                    <tr>
+                        <td>${article.id}</td>
+                        <td>${article.name}</td>
+                        <td>${article.stock}</td>
+                        <td>${article.minStock}</td>
+                    </tr>
+                `;
+            });
+            
+            content.innerHTML += `
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function generateCustomerReport() {
+            const content = document.getElementById('reports-content');
+            
+            content.innerHTML = `
+                <h3>KUNDENLISTE</h3>
+                <div style="margin: 20px 0;">
+                    <p><strong>Kunden gesamt:</strong> ${customers.length}</p>
+                </div>
+                
+                <table class="table">
+                    <thead>
+                        <tr><th>Kd.-Nr.</th><th>Firmenname</th><th>Ansprechpartner</th><th>Ort</th><th>Telefon</th><th>E-Mail</th></tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            customers.forEach(customer => {
+                content.innerHTML += `
+                    <tr>
+                        <td>${customer.id}</td>
+                        <td>${customer.company}</td>
+                        <td>${customer.contact}</td>
+                        <td>${customer.city}</td>
+                        <td>${customer.phone}</td>
+                        <td>${customer.email}</td>
+                    </tr>
+                `;
+            });
+            
+            content.innerHTML += `
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // Hilfsfunktionen
+        function setupTableNavigation() {
+            // Tabellennavigation mit Pfeiltasten könnte hier implementiert werden
+        }
+
+        function selectRow(row) {
+            // Vorherige Auswahl entfernen
+            if (selectedRow) {
+                selectedRow.classList.remove('highlight');
+            }
+            
+            // Neue Auswahl setzen
+            selectedRow = row;
+            row.classList.add('highlight');
+        }
+
+        function refreshAllTables() {
+            refreshArticlesTable();
+            refreshCustomersTable();
+            refreshInvoicesTable();
+            refreshStockTable();
+            refreshCustomerSelect();
+            refreshArticleSelect();
+        }
+    </script>
+</body>
+</html>

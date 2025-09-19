@@ -1,0 +1,174 @@
+@import url('https://fonts.googleapis.com/css2?family=Courier+New:wght@400;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', monospace;
+    background-color: #000;
+    color: #ffffff;
+    overflow: hidden;
+    height: 100vh;
+}
+
+#root {
+    height: 100vh;
+    width: 100vw;
+}
+
+.dos-screen {
+    width: 100vw;
+    height: 100vh;
+    padding: 10px;
+    background-color: #000;
+    border: 2px solid #ffffff;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    text-align: center;
+    border-bottom: 1px solid #ffffff;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+}
+
+.menu-bar {
+    background-color: #333333;
+    padding: 5px;
+    border: 1px solid #ffffff;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+}
+
+.menu-item {
+    display: inline-block;
+    margin-right: 20px;
+    cursor: pointer;
+    padding: 2px 5px;
+}
+
+.menu-item.active,
+.menu-item:hover {
+    background-color: #ffffff;
+    color: #000;
+}
+
+.main-content {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid #ffffff;
+    padding: 10px;
+}
+
+.status-bar {
+    background-color: #333333;
+    padding: 5px;
+    border: 1px solid #ffffff;
+    flex-shrink: 0;
+    margin-top: 10px;
+}
+
+.form-row {
+    margin-bottom: 5px;
+}
+
+.form-label {
+    display: inline-block;
+    width: 150px;
+}
+
+.form-input {
+    background-color: #000;
+    color: #ffffff;
+    border: 1px solid #ffffff;
+    padding: 2px;
+    font-family: inherit;
+    width: 200px;
+}
+
+.form-input:focus {
+    background-color: #333333;
+    outline: none;
+}
+
+.button {
+    background-color: #000;
+    color: #ffffff;
+    border: 1px solid #ffffff;
+    padding: 5px 10px;
+    font-family: inherit;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.button:hover,
+.button.active {
+    background-color: #ffffff;
+    color: #000;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.table th,
+.table td {
+    border: 1px solid #ffffff;
+    padding: 5px;
+    text-align: left;
+}
+
+.table th {
+    background-color: #333333;
+}
+
+.table tr:hover {
+    background-color: #333333;
+}
+
+.table tr.highlight {
+    background-color: #ffffff !important;
+    color: #000 !important;
+}
+
+.hidden {
+    display: none;
+}
+
+.highlight {
+    background-color: #ffffff;
+    color: #000;
+}
+
+.invoice-preview {
+    border: 2px solid #ffffff;
+    padding: 20px;
+    margin: 10px 0;
+    background-color: #111111;
+}
+
+@media print {
+    body {
+        background-color: white;
+        color: black;
+    }
+    .dos-screen {
+        border: none;
+        height: auto;
+    }
+    .menu-bar, .status-bar {
+        display: none;
+    }
+    .invoice-preview {
+        background-color: white;
+        border: 1px solid black;
+    }
+}
