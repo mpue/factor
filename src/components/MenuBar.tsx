@@ -8,12 +8,12 @@ interface MenuBarProps {
 
 const MenuBar: React.FC<MenuBarProps> = ({ currentScreen, onScreenChange }) => {
   const menuItems = [
-    { key: 'F1', screen: 'artikel' as Screen, label: 'F1-Artikel' },
-    { key: 'F2', screen: 'kunden' as Screen, label: 'F2-Kunden' },
-    { key: 'F3', screen: 'rechnungen' as Screen, label: 'F3-Rechnungen' },
-    { key: 'F4', screen: 'lager' as Screen, label: 'F4-Lager' },
-    { key: 'F5', screen: 'berichte' as Screen, label: 'F5-Berichte' },
-    { key: 'ESC', screen: 'main' as Screen, label: 'ESC-Hauptmenü' },
+    { key: 'F1', screen: 'artikel' as Screen, label: 'Artikel', icon: '📦' },
+    { key: 'F2', screen: 'kunden' as Screen, label: 'Kunden', icon: '👥' },
+    { key: 'F3', screen: 'rechnungen' as Screen, label: 'Rechnungen', icon: '🧾' },
+    { key: 'F4', screen: 'lager' as Screen, label: 'Lager', icon: '📋' },
+    { key: 'F5', screen: 'berichte' as Screen, label: 'Berichte', icon: '📊' },
+    { key: 'ESC', screen: 'main' as Screen, label: 'Dashboard', icon: '🏠' },
   ];
 
   return (
@@ -24,8 +24,11 @@ const MenuBar: React.FC<MenuBarProps> = ({ currentScreen, onScreenChange }) => {
           className={`menu-item ${currentScreen === item.screen ? 'active' : ''}`}
           data-key={item.key}
           onClick={() => onScreenChange(item.screen)}
+          title={`${item.key} - ${item.label}`}
         >
-          {item.label}
+          <span className="menu-icon">{item.icon}</span>
+          <span className="menu-label">{item.label}</span>
+          <span className="menu-key">{item.key}</span>
         </span>
       ))}
     </div>

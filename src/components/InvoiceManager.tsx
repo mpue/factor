@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Invoice, InvoiceTemplate, Customer, Article } from '../types';
 import { InvoiceService } from '../services/InvoiceService';
 import { ApiDataService } from '../services/ApiDataService';
+import { InvoiceForm } from './InvoiceForm';
 
 const invoiceService = new InvoiceService();
 const apiService = new ApiDataService();
@@ -83,17 +84,6 @@ export const InvoiceManager: React.FC = () => {
     return new Date(dateString).toLocaleDateString('de-DE');
   };
 
-  const getStatusColor = (status: Invoice['status']): string => {
-    switch (status) {
-      case 'draft': return '#666';
-      case 'sent': return '#0066cc';
-      case 'paid': return '#00aa00';
-      case 'overdue': return '#cc0000';
-      case 'cancelled': return '#999';
-      default: return '#666';
-    }
-  };
-
   const getStatusText = (status: Invoice['status']): string => {
     switch (status) {
       case 'draft': return 'Entwurf';
@@ -109,6 +99,7 @@ export const InvoiceManager: React.FC = () => {
     return (
       <div className="invoice-manager">
         <div className="loading">
+          <div className="loading-spinner"></div>
           <div className="loading-text">Lade Rechnungen...</div>
         </div>
       </div>
@@ -153,19 +144,19 @@ export const InvoiceManager: React.FC = () => {
             disabled={customers.length === 0}
             title={customers.length === 0 ? "Keine Kunden vorhanden" : "Neue Rechnung erstellen"}
           >
-            F2 - Neue Rechnung
+            ➕ Neue Rechnung
           </button>
           <button 
             className="btn btn-secondary"
             onClick={() => setCurrentView('templates')}
           >
-            F3 - Vorlagen
+            📋 Vorlagen
           </button>
           <button 
             className="btn btn-secondary"
             onClick={loadData}
           >
-            F5 - Aktualisieren
+            🔄 Aktualisieren
           </button>
         </div>
       </div>
@@ -207,34 +198,31 @@ export const InvoiceManager: React.FC = () => {
                   <td>{invoice.dueDate ? formatDate(invoice.dueDate) : '-'}</td>
                   <td className="amount">{formatCurrency(invoice.totalAmount)}</td>
                   <td>
-                    <span 
-                      className="status-badge"
-                      style={{ backgroundColor: getStatusColor(invoice.status) }}
-                    >
+                    <span className={`status-badge status-${invoice.status}`}>
                       {getStatusText(invoice.status)}
                     </span>
                   </td>
                   <td className="actions">
                     <button
-                      className="btn btn-small"
+                      className="btn btn-small btn-secondary"
                       onClick={() => handleEditInvoice(invoice)}
                       title="Bearbeiten"
                     >
-                      ✏️
+                      ✏️ Edit
                     </button>
                     <button
-                      className="btn btn-small"
+                      className="btn btn-small btn-primary"
                       onClick={() => handleExportPDF(invoice)}
                       title="PDF exportieren"
                     >
-                      📄
+                      📄 PDF
                     </button>
                     <button
                       className="btn btn-small btn-danger"
                       onClick={() => handleDeleteInvoice(invoice.id)}
                       title="Löschen"
                     >
-                      🗑️
+                      🗑️ Delete
                     </button>
                   </td>
                 </tr>
@@ -274,24 +262,6 @@ export const InvoiceManager: React.FC = () => {
 };
 
 // Placeholder components - these would be implemented separately
-const InvoiceForm: React.FC<{
-  invoice: Invoice | null;
-  customers: Customer[];
-  articles: Article[];
-  templates: InvoiceTemplate[];
-  onSave: () => Promise<void>;
-  onCancel: () => void;
-}> = ({ onCancel }) => {
-  return (
-    <div className="invoice-form">
-      <h2>Rechnung bearbeiten</h2>
-      <p>Formular wird implementiert...</p>
-      <button className="btn btn-secondary" onClick={onCancel}>
-        Zurück
-      </button>
-    </div>
-  );
-};
 
 const TemplateManager: React.FC<{
   templates: InvoiceTemplate[];
